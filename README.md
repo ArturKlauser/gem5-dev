@@ -1,4 +1,4 @@
-# Build environment for gem5 ARM.
+# Build environment for [gem5](http://gem5.org) ARM.
 The Dockerfile in this repository creates the gem5-dev docker image that
 includes the build environment necessary to compile and run the gem5 ARM
 full system simulator. The image is structured in such a way that it assumes
@@ -58,6 +58,9 @@ docker run --rm -v $GEM5_WORKDIR:/gem5 -it gem5-dev run-fs
 ```
 Note that the gem5 ARM system file will be installed into a directory called
 'system' inside $GEM5_WORKDIR.
+
+If you want to build your own full system images, see Pau's
+[gem5_arm_fullsystem_files_generator](https://github.com/metempsy/gem5_arm_fullsystem_files_generator).
 
 ### Starting your own runs
 The runs that were started with the 'run' commands above are just sample
