@@ -41,7 +41,7 @@ Let's call that directory $GEM5_WORKDIR.
 ### Installing, building, and running gem5
 Now you can run the gem5-dev docker image and use it to get the gem5 source,
 compile gem5, and run it:
-``
+```
 docker run --rm -v $GEM5_WORKDIR:/gem5 -it gem5-dev install-source
 docker run --rm -v $GEM5_WORKDIR:/gem5 -it gem5-dev build
 docker run --rm -v $GEM5_WORKDIR:/gem5 -it gem5-dev run-se
@@ -60,13 +60,15 @@ Note that the gem5 ARM system file will be installed into a directory called
 'system' inside $GEM5_WORKDIR.
 
 ### Starting your own runs
-The runs that are started are just sample commands that allow you to verify
-that the build has worked properly. In order to actually do something useful
-with gem5, you'll have to issue your own run commands. In order to do that,
-get into a shell in the build environment and issue the run commands you
-need:
+The runs that were started with the 'run' commands above are just sample
+commands that allow you to verify that the build has worked properly. In
+order to actually do something useful with gem5, you'll have to issue your
+own run commands. In order to do that, get into a shell in the build
+environment and issue the run commands you need:
 ```
+# on the host
 docker run --rm -v $GEM5_WORKDIR:/gem5 -it gem5-dev shell
+# now in the docker container
 cd source
 build/ARM/gem5.opt configs/example/se.py -c tests/test-progs/hello/bin/arm/linux/hello
 ```
@@ -77,11 +79,12 @@ convenient place to modify the gem5 sources. The method of development with
 the gem5-dev docker image is that you edit the gem5 source files on your
 host machine on which it is assumed you have already set up whatever source
 code editing environment you prefer. Since all the source code lives in the
-gem5 working dir on the host your host editing environment has full access
-to the source files. Once you're done with a modification and want to test
-it, you simply run the compile step inside the gem5-dev container. Here is a
-sample development cycle:
+gem5 working directorh on the host, your host editing environment has full
+access to the source files. Once you're done with a modification and want to
+test it, simply run the compile step inside the gem5-dev container. Here is
+a sample development cycle:
 ```
+# on the host
 vim $GEM5_WORKDIR/source/src/arch/arm/some_file.cc
 # edit that file, then compile it
 docker run --rm -v $GEM5_WORKDIR:/gem5 -it gem5-dev build
@@ -91,15 +94,19 @@ Alternatively, you could also use a second terminal in which you keep a
 shell open in the gem5-dev container and perform your compiles there:
 
 ```
-# Terminal 1:
+### Terminal 1:
+# on the host
 docker run --rm -v $GEM5_WORKDIR:/gem5 -it gem5-dev shell
+# now in the docker container
 cd source
 
-# Terminal 2:
-vim $GEM5_WORKDIR/source/src/arch/arm/some_file.cc
-# edit that file
+### Terminal 2:
+# on the host
+edit $GEM5_WORKDIR/source/src/arch/arm/some_file.cc
+# editing that file ...
 
-# Terminal 1:
+### Terminal 1:
+# still in the docker container
 scons -j $(nproc) build/ARM/gem5.opt
 # if it works, run it, otherwise back to editing
 build/ARM/gem5.opt configs/example/se.py -c tests/test-progs/hello/bin/arm/linux/hello
