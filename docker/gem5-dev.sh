@@ -175,7 +175,7 @@ main() {
     'run-fs') run_fs ;;
     'shell' | 'bash') run_shell ;;
     *)
-      echo "unkown command '$1'"
+      echo "unkown command '${cmd}'"
       echo
       print_usage
       exit 1
