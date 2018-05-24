@@ -10,15 +10,15 @@ desired.
 
 The gem5-dev docker image is structured to run as a binary supporting several
 commands:
-  * install-source ... installs the gem5 sources from git in the working
+  * **install-source**: installs the gem5 sources from git in the working
      directory
-  * update-source ... updates the gem5 sources
-  * install-system ... installs the gem5 system image by downloading and
+  * **update-source**: updates the gem5 sources
+  * **install-system**: installs the gem5 system image by downloading and
     uplacking the corresponding tar file
-  * build ... builds the gem5 ARM binary
-  * run-se ... runs a sample binary in syscall emulation mode
-  * run-fs ... starts a sample run in full system mode
-  * shell ... enters into an interactive shell in the container running the
+  * **build**: builds the gem5 ARM binary
+  * **run-se**: runs a sample binary in syscall emulation mode
+  * **run-fs**: starts a sample run in full system mode
+  * **shell**: enters into an interactive shell in the container running the
     gem5-dev image in which the developer can work within the build
     environment; above commands are also available within this shell as
     commands to the gem5-dev tool
@@ -28,7 +28,12 @@ Build the gem5-dev image like this:
 ```
 docker build -t gem5-dev docker
 ```
-This creates the docker image called gem5-dev.
+This creates the docker image called gem5-dev. 
+Docker hub also holds a pre-built image under [arturklauser/gem5-dev](https://hub.docker.com/r/arturklauser/gem5-dev/). To use this image simply use `docker pull arturklauser/gem5-dev` or use it in your own Dockerfile:
+```
+FROM arturklauser/gem5-dev
+...
+```
 
 ## How to use the docker image
 ### Setting up the gem5 working directory
@@ -96,19 +101,21 @@ docker run --rm -v $GEM5_WORKDIR:/gem5 -it gem5-dev build
 Alternatively, you could also use a second terminal in which you keep a
 shell open in the gem5-dev container and perform your compiles there:
 
+*Terminal 1:*
 ```
-### Terminal 1:
 # on the host
 docker run --rm -v $GEM5_WORKDIR:/gem5 -it gem5-dev shell
 # now in the docker container
 cd source
-
-### Terminal 2:
+```
+*Terminal 2:*
+```
 # on the host
 edit $GEM5_WORKDIR/source/src/arch/arm/some_file.cc
 # editing that file ...
-
-### Terminal 1:
+```
+*Terminal 1:*
+```
 # still in the docker container
 scons -j $(nproc) build/ARM/gem5.opt
 # if it works, run it, otherwise back to editing
