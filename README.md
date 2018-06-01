@@ -1,11 +1,11 @@
-# Build environment for [gem5](http://gem5.org) ARM.
+# Development environment for [gem5](http://gem5.org) ARM.
 The Dockerfile in this repository creates the gem5-dev docker image that
 includes the build environment necessary to compile and run the gem5 ARM
 full system simulator. The image is structured in such a way that it assumes
 the user mounts a gem5 working directory residing on the host machine into
 the container running the gem5-dev image. The docker image hosts the full
 build environment, whereas the gem5 working directory holds the gem5 source
-code, compile artifacts, and the image file for full system simulation if
+code, compile artifacts, and the image files for full system simulation if
 desired.
 
 The gem5-dev docker image is structured to run as a binary supporting several
@@ -13,11 +13,11 @@ commands:
   * **install-source**: installs the gem5 sources from git in the working
      directory
   * **update-source**: updates the gem5 sources
-  * **install-system**: installs the gem5 system image by downloading and
+  * **install-system**: installs the gem5 ARM system image by downloading and
     uplacking the corresponding tar file
   * **build**: builds the gem5 ARM binary
-  * **run-se**: runs a sample binary in syscall emulation mode
-  * **run-fs**: starts a sample run in full system mode
+  * **run-se**: runs a sample binary in Syscall Emulation mode
+  * **run-fs**: starts a sample run in Full System mode
   * **shell**: enters into an interactive shell in the container running the
     gem5-dev image in which the developer can work within the build
     environment; above commands are also available within this shell as
@@ -61,7 +61,7 @@ corresponding system files as well:
 docker run --rm -v $GEM5_WORKDIR:/gem5 -it gem5-dev install-system
 docker run --rm -v $GEM5_WORKDIR:/gem5 -it gem5-dev run-fs
 ```
-Note that the gem5 ARM system file will be installed into a directory called
+Note that the gem5 ARM system files will be installed into a directory called
 'system' inside $GEM5_WORKDIR.
 
 If you want to build your own full system images, see Pau's
@@ -71,8 +71,8 @@ If you want to build your own full system images, see Pau's
 The runs that were started with the 'run' commands above are just sample
 commands that allow you to verify that the build has worked properly. In
 order to actually do something useful with gem5, you'll have to issue your
-own run commands. In order to do that, get into a shell in the build
-environment and issue the run commands you need:
+own run commands. To do that, get into a shell in the build environment and
+issue the run commands you need:
 ```
 # on the host
 docker run --rm -v $GEM5_WORKDIR:/gem5 -it gem5-dev shell
@@ -87,10 +87,10 @@ convenient place to modify the gem5 sources. The method of development with
 the gem5-dev docker image is that you edit the gem5 source files on your
 host machine on which it is assumed you have already set up whatever source
 code editing environment you prefer. Since all the source code lives in the
-gem5 working directorh on the host, your host editing environment has full
-access to the source files. Once you're done with a modification and want to
-test it, simply run the compile step inside the gem5-dev container. Here is
-a sample development cycle:
+gem5 working directory on the host, your host editing environment has full
+native access to the source files. Once you're done with a modification and
+want to test it, simply run the compile step inside the gem5-dev container.
+Here is a sample development cycle:
 ```
 # on the host
 vim $GEM5_WORKDIR/source/src/arch/arm/some_file.cc
@@ -118,6 +118,6 @@ edit $GEM5_WORKDIR/source/src/arch/arm/some_file.cc
 ```
 # still in the docker container
 scons -j $(nproc) build/ARM/gem5.opt
-# if it works, run it, otherwise back to editing
+# if it compiles, run it, otherwise back to editing on the host
 build/ARM/gem5.opt configs/example/se.py -c tests/test-progs/hello/bin/arm/linux/hello
 ```
