@@ -18,10 +18,10 @@ Where <cmd> is one of:
   help ............. prints this help message
   install-source ... installs the gem5 git source repository into ${sourcedir}
   update-source .... updates the gem5 git source repository in ${sourcedir}
-  install-system ... installs the ARM git5 system images in ${systemdir}
+  install-system ... installs the gem5 ARM system images in ${systemdir}
   build ............ builds gem5 ARM binary
-  run-se ........... runs gem5 ARM in syscall emulation mode
-  run-fs ........... runs gem5 ARM in full system mode
+  run-se ........... runs gem5 ARM in Syscall Emulation mode
+  run-fs ........... runs gem5 ARM in Full System mode
   shell | bash ..... enters into an interactive shell
 EOF
 }
@@ -101,7 +101,7 @@ build() {
   ${cmd}
 }
 
-# Runs the gem5 ARM binary in syscall emulation mode.
+# Runs the gem5 ARM binary in Syscall Emulation mode.
 run_se() {
   check_hostdir_mounted
   if [[ ! -e "${sourcedir}" ]]; then
@@ -109,7 +109,7 @@ run_se() {
     exit 1
   fi
 
-  echo "running gem5 ARM binary in syscall emulation mode ..."
+  echo "running gem5 ARM binary in Syscall Emulation mode ..."
   cd ${sourcedir}
   local simulator='build/ARM/gem5.opt'
   local script='configs/example/se.py'
@@ -123,7 +123,7 @@ run_se() {
   ${cmd}
 }
 
-# Runs the gem5 ARM binary in full system mode.
+# Runs the gem5 ARM binary in Full System mode.
 run_fs() {
   check_hostdir_mounted
   if [[ ! -e "${sourcedir}" ]]; then
@@ -135,7 +135,7 @@ run_fs() {
     exit 1
   fi
 
-  echo "running gem5 ARM binary in full system mode ..."
+  echo "running gem5 ARM binary in Full System mode ..."
   cd ${sourcedir}
   local simulator='build/ARM/gem5.opt'
   local script='configs/example/fs.py'
