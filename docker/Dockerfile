@@ -37,7 +37,8 @@ RUN apt-get update && apt-get install -y \
  telnet \
  wget \
  zlib1g-dev \
- $packages
+ python-pip \
+ $packages && pip install six
 
 WORKDIR $mountdir
 # Watermark $mountdir in docker image, so we can detect if a host directory is
