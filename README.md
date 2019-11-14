@@ -14,7 +14,7 @@ commands:
      directory
   * **update-source**: updates the gem5 sources
   * **install-system**: installs the gem5 ARM system image by downloading and
-    uplacking the corresponding tar file
+    unpacking the corresponding tar file
   * **build**: builds the gem5 ARM binary
   * **run-se**: runs a sample binary in Syscall Emulation mode
   * **run-fs**: starts a sample run in Full System mode
