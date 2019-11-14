@@ -33,12 +33,12 @@ RUN apt-get update && apt-get install -y \
  protobuf-compiler \
  python \
  python-dev \
+ python-six \
  scons \
  telnet \
  wget \
  zlib1g-dev \
- python-pip \
- $packages && pip install six
+ $packages
 
 WORKDIR $mountdir
 # Watermark $mountdir in docker image, so we can detect if a host directory is
