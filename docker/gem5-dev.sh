@@ -164,23 +164,26 @@ run_shell() {
 }
 
 main() {
-  local cmd="$1"
-  shift
-  case "${cmd}" in
-    'help') print_usage ;;
-    'install-source') install_source ;;
-    'update-source') update_source ;;
-    'install-system') install_system ;;
-    'build') build ;;
-    'run-se') run_se ;;
-    'run-fs') run_fs ;;
-    'shell' | 'bash') run_shell ;;
-    *)
-      echo "unkown command '${cmd}'"
-      echo
-      print_usage
-      exit 1
-  esac
+  local cmd
+  for cmd in "$@"; do
+    case "${cmd}" in
+      'help') print_usage ;;
+      'install-source') install_source ;;
+      'update-source') update_source ;;
+      'install-system') install_system ;;
+      'build') build ;;
+      'run-se') run_se ;;
+      'run-fs') run_fs ;;
+      'shell' | 'bash') run_shell ;;
+      -* | +*) set "${cmd}" ;; # pass +/-flags to shell's set command.
+      *)
+        echo "unkown command '${cmd}'"
+        echo
+        print_usage
+        exit 1
+        ;;
+    esac
+  done
 }
 
 main "$@"

@@ -1,0 +1,48 @@
+#!/bin/bash -ex
+#
+# This script runs as part of the DockerHub build pipeline (on AWS).
+# See https://docs.docker.com/docker-hub/builds/advanced/
+
+export GEM5_WORKDIR="${PWD}/work"
+mkdir -p "${GEM5_WORKDIR}"
+
+# Run command in gem5 container, print all executed lines (-x), and exit on
+# first error (-e).
+function run_gem5() {
+  docker run --rm -v "${GEM5_WORKDIR}:/gem5" "${IMAGE_NAME}" -ex "$@"
+}
+
+function start_fifo() {
+  fifo='x.fifo'
+  rm -f "${fifo}"
+  mkfifo "${fifo}"
+  tail -f "${fifo}" &
+  tail_fifo_pid=$!
+}
+
+function stop_fifo() {
+  sleep 1
+  kill "${tail_fifo_pid}"
+  rm -f "${fifo}"
+}
+
+#--- Unfortunatley building is too slow to complete on DockerHub; it runs into
+#--- the 4 hour timeout before completing the compilation.
+#--- Thus disabling further steps.
+exit 0
+#---
+
+# Test syscall-emulation (SE) mode.
+run_gem5 install-source
+
+run_gem5 build
+#-- Run exits with error 13, but consider it OK if it prints what we expect.
+start_fifo
+run_gem5 run-se | tee "${fifo}" | grep -q "Hello world"
+stop_fifo
+
+# Test full-system (FS) mode.
+run_gem5 install-system
+start_fifo
+run_gem5 run-fs | tee "${fifo}" | grep -q "m5_exit instruction encountered"
+stop_fifo
