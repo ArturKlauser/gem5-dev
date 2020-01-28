@@ -69,11 +69,12 @@ install_system() {
     echo "installing ARM full-system image into ${systemdir} ..."
     mkdir "${systemdir}"
     cd "${systemdir}"
-    readonly image='aarch-system-20180409.tar.xz'
-    wget "http://www.gem5.org/dist/current/arm/${image}"
-    tar xJvf "${image}"
-    # To save space we remove the tar ball.
-    rm "${image}"
+    local image='aarch-system-20180409.tar.xz'
+    echo "installing ARM full-system image $image"
+    wget -O - "http://www.gem5.org/dist/current/arm/${image}" | tar xJvf -
+    image='aarch-system-201901106.tar.bz2'
+    echo "installing ARM full-system image $image"
+    wget -O - "http://www.gem5.org/dist/current/arm/${image}" | tar xzvf -
   else
     echo "ARM full-system image is already installed."
   fi
