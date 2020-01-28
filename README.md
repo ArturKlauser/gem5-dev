@@ -28,7 +28,7 @@ Build the gem5-dev image like this:
 ```
 docker build -t gem5-dev docker
 ```
-This creates the docker image called gem5-dev. 
+This creates the docker image called gem5-dev.
 Docker hub also holds a pre-built image under [arturklauser/gem5-dev](https://hub.docker.com/r/arturklauser/gem5-dev/). To use this image simply use `docker pull arturklauser/gem5-dev` or use it in your own Dockerfile:
 ```
 FROM arturklauser/gem5-dev
@@ -40,7 +40,7 @@ FROM arturklauser/gem5-dev
 Create a directory on the host system which you'd like to use as gem5
 working directory. It will contain the sources, build artifacts (e.g. .o and
 binary files), and the ARM system image files. You'll need several GBs of
-space for this (currently about 12 GB, but it depends on your builds). 
+space for this (currently about 12 GB, but it depends on your builds).
 Let's call that directory $GEM5_WORKDIR.
 
 ### Installing, building, and running gem5

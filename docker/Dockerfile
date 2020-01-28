@@ -24,21 +24,26 @@ ARG packages
 ARG mountdir=/gem5
 
 # Install gem5 dependencies.
-RUN apt-get update && apt-get install -y \
- g++ \
- git \
- libgoogle-perftools-dev \
- libprotobuf-dev \
- m4 \
- protobuf-compiler \
- python \
- python-dev \
- python-six \
- scons \
- telnet \
- wget \
- zlib1g-dev \
- $packages
+# hadolint ignore=DL3008,DL3015
+RUN set -x \
+    && apt-get update \
+    && apt-get install -y \
+       g++ \
+       git \
+       libgoogle-perftools-dev \
+       libprotobuf-dev \
+       m4 \
+       protobuf-compiler \
+       python \
+       python-dev \
+       python-six \
+       scons \
+       telnet \
+       wget \
+       zlib1g-dev \
+       $packages \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR $mountdir
 # Watermark $mountdir in docker image, so we can detect if a host directory is
@@ -47,10 +52,11 @@ RUN touch .in-docker-container
 
 # Install and set up the front-end script.
 COPY gem5-dev.sh /
-RUN sed -e s@#MOUNTDIR#@mountdir=$mountdir@ /gem5-dev.sh \
-      > /usr/local/bin/gem5-dev && \
-  chmod 755 /usr/local/bin/gem5-dev && \
-  rm /gem5-dev.sh
+RUN set -x \
+    && sed -e s@#MOUNTDIR#@mountdir=$mountdir@ /gem5-dev.sh \
+       > /usr/local/bin/gem5-dev \
+    && chmod 755 /usr/local/bin/gem5-dev \
+    && rm /gem5-dev.sh
 
 # Full system runs find their files with M5_PATH.
 ENV M5_PATH $mountdir/system

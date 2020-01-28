@@ -44,7 +44,7 @@ install_source() {
   check_hostdir_mounted
   if [ ! -e "${sourcedir}/.git" ]; then
     echo "installing gem5 source respository into ${sourcedir} ..."
-    git clone https://gem5.googlesource.com/public/gem5 ${sourcedir}
+    git clone https://gem5.googlesource.com/public/gem5 "${sourcedir}"
   else
     echo "gem5 source respository is already installed."
   fi
@@ -55,7 +55,7 @@ update_source() {
   check_hostdir_mounted
   if [[ -e "${sourcedir}/.git" ]]; then
     echo "updatig gem5 source respository at ${sourcedir} ..."
-    cd ${sourcedir}
+    cd "${sourcedir}" || exit 1
     git pull
   else
     echo "gem5 source respository not found at ${sourcedir}."
@@ -68,7 +68,7 @@ install_system() {
   if [[ ! -e "${systemdir}" ]]; then
     echo "installing ARM full-system image into ${systemdir} ..."
     mkdir "${systemdir}"
-    cd "${systemdir}"
+    cd "${systemdir}" || exit 1
     local image='aarch-system-20180409.tar.xz'
     echo "installing ARM full-system image $image"
     wget -O - "http://www.gem5.org/dist/current/arm/${image}" | tar xJvf -
@@ -89,7 +89,7 @@ build() {
   fi
 
   echo "building gem5 ARM binary ..."
-  cd ${sourcedir}
+  cd "${sourcedir}" || exit 1
   # Building inst-constrs-3.cc is a memory hog and can easily run the
   # container out of resources if done in parallel with other compiles. So
   # we first build it alone and then build the rest.
@@ -97,7 +97,7 @@ build() {
   echo "${cmd}"
   ${cmd}
   # Now build the rest in parallel.
-  local cmd="scons -j $(nproc) build/ARM/gem5.opt"
+  cmd="scons -j $(nproc) build/ARM/gem5.opt"
   echo "${cmd}"
   ${cmd}
 }
@@ -111,15 +111,15 @@ run_se() {
   fi
 
   echo "running gem5 ARM binary in Syscall Emulation mode ..."
-  cd ${sourcedir}
-  local simulator='build/ARM/gem5.opt'
-  local script='configs/example/se.py'
-  local binary='tests/test-progs/hello/bin/arm/linux/hello'
+  cd "${sourcedir}" || exit 1
+  local -r simulator='build/ARM/gem5.opt'
+  local -r script='configs/example/se.py'
+  local -r binary='tests/test-progs/hello/bin/arm/linux/hello'
   if [[ ! -e "${simulator}" ]]; then
     echo "gem5 simulator binary ${simulator} not found."
     exit 1
   fi
-  cmd="${simulator} ${script} -c ${binary}"
+  local -r cmd="${simulator} ${script} -c ${binary}"
   echo "${cmd}"
   ${cmd}
 }
@@ -137,15 +137,15 @@ run_fs() {
   fi
 
   echo "running gem5 ARM binary in Full System mode ..."
-  cd ${sourcedir}
-  local simulator='build/ARM/gem5.opt'
-  local script='configs/example/fs.py'
+  cd "${sourcedir}" || exit 1
+  local -r simulator='build/ARM/gem5.opt'
+  local -r script='configs/example/fs.py'
 
   if [[ ! -e "${simulator}" ]]; then
     echo "gem5 simulator binary ${simulator} not found."
     exit 1
   fi
-  cmd="${simulator} ${script} \
+  local -r cmd="${simulator} ${script} \
     --machine-type=VExpress_GEM5_V1 \
     --dtb=armv8_gem5_v1_1cpu.dtb \
     --kernel=vmlinux.vexpress_gem5_v1_64 \
@@ -159,7 +159,7 @@ run_shell() {
   check_hostdir_mounted
   echo "To build gem5, run: "
   echo "  cd ${sourcedir}; scons -j \$(nproc) build/ARM/gem5.opt"
-  cd "${mountdir}"
+  cd "${mountdir}" || exit 1
   exec /bin/bash -l
 }
 
