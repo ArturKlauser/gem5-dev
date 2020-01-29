@@ -69,12 +69,18 @@ install_system() {
     echo "installing ARM full-system image into ${systemdir} ..."
     mkdir "${systemdir}"
     cd "${systemdir}" || exit 1
+    #--- http://www.gem5.org/dist/current/arm/* disappeared on 2020-01-29.
+    # local image='aarch-system-20180409.tar.xz'
+    # echo "installing ARM full-system image $image"
+    # wget -O - "http://www.gem5.org/dist/current/arm/${image}" | tar xJvf -
+    #--- Using Pau's releases from 2018.
     local image='aarch-system-20180409.tar.xz'
     echo "installing ARM full-system image $image"
-    wget -O - "http://www.gem5.org/dist/current/arm/${image}" | tar xJvf -
-    image='aarch-system-201901106.tar.bz2'
-    echo "installing ARM full-system image $image"
-    wget -O - "http://www.gem5.org/dist/current/arm/${image}" | tar xzvf -
+    local releases='https://github.com/metempsy'
+    releases+='/gem5_arm_fullsystem_files_generator/releases/download/20180409'
+    wget -O - "${releases}/${image}" | tar xJvf -
+    # Fix up image: ARM/dev/arm/RealView.py requires boot.arm64 to exist.
+    ln -s 'boot_emm.arm64' 'binaries/boot.arm64'
   else
     echo "ARM full-system image is already installed."
   fi
@@ -165,6 +171,7 @@ run_shell() {
 
 main() {
   local cmd
+  local -r initial_dir="${PWD}"
   for cmd in "$@"; do
     case "${cmd}" in
       'help') print_usage ;;
@@ -183,6 +190,7 @@ main() {
         exit 1
         ;;
     esac
+    cd "${initial_dir}" || exit 1
   done
 }
 
