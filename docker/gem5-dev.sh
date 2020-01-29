@@ -70,10 +70,11 @@ install_system() {
     mkdir "${systemdir}"
     cd "${systemdir}" || exit 1
     #--- http://www.gem5.org/dist/current/arm/* disappeared on 2020-01-29.
+    #--- Content is still visible at http://m5sim.org/dist/current/arm/.
     # local image='aarch-system-20180409.tar.xz'
     # echo "installing ARM full-system image $image"
     # wget -O - "http://www.gem5.org/dist/current/arm/${image}" | tar xJvf -
-    #--- Using Pau's releases from 2018.
+    #--- Using Pau's GitHub releases from 2018 instead.
     local image='aarch-system-20180409.tar.xz'
     echo "installing ARM full-system image $image"
     local releases='https://github.com/metempsy'

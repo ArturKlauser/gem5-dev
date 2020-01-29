@@ -23,3 +23,92 @@ jobs:
         key: pre-commit|${{env.PY}}|${{hashFiles('.pre-commit-config.yaml')}}
     - name: Run pre-commit checks
       uses: pre-commit/action@v1.0.0
+
+  docker:
+    name: Build, test, and deploy Docker images
+    # Only deploy if previous stages pass.
+    needs: [run-pre-commits]
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'push' &&
+        (github.ref == 'refs/heads/deploy' ||
+         startsWith(github.ref, 'refs/tags/')) &&
+      github.repository == 'ArturKlauser/gem5-dev'
+    env:
+      # Export environment variables for all stages.
+      DOCKER_BASE: arturklauser/gem5-dev
+      DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1  # no history, just HEAD
+    - name: Set up image tag
+      run: |
+        set -evx
+        # Export environment variable for later stages.
+        if echo "$GITHUB_REF" | grep -q '^refs/heads/'; then
+          # Pushes to (master) branch - deploy 'latest'.
+          echo "::set-env name=TAG::latest"
+        elif echo "$GITHUB_REF" | grep -q '^refs/tags/'; then
+          # Pushes tag - deploy tag name.
+          echo "::set-env name=TAG::${GITHUB_REF/refs\/tags\//}"
+        fi
+    - name: Build docker image
+      run: |
+        set -evx
+        docker build -t "${DOCKER_BASE}:${TAG}" docker
+    - name: Test docker image
+      run: |
+        set -evx
+        export GEM5_WORKDIR="${PWD}/work"
+        mkdir -p "${GEM5_WORKDIR}"
+
+        function title() {
+          msg="$1"
+          line="${1//?/=}"
+          printf "\n${line}\n${msg}\n${line}\n"
+        }
+
+        # Run command in gem5 container, print all executed lines (-x), and exit
+        # on first error (-e).
+        function run_gem5() {
+          title "$*"
+          docker run --rm -v "${GEM5_WORKDIR}:/gem5" "${DOCKER_BASE}:${TAG}" \
+            -ex "$@"
+        }
+
+        function start_fifo() {
+          fifo='x.fifo'
+          rm -f "${fifo}"
+          mkfifo "${fifo}"
+          tail -f "${fifo}" &
+          tail_fifo_pid=$!
+        }
+
+        function stop_fifo() {
+          sleep 1
+          kill "${tail_fifo_pid}"
+          rm -f "${fifo}"
+        }
+
+        # Test syscall-emulation (SE) mode.
+        run_gem5 install-source
+        run_gem5 build
+        # Run exits with error 13; consider it OK if it prints what we expect.
+        start_fifo
+        run_gem5 run-se | tee "${fifo}" | grep -q "Hello world"
+        stop_fifo
+
+        # Test full-system (FS) mode.
+        run_gem5 install-system
+        start_fifo
+        run_gem5 run-fs | tee "${fifo}" \
+          | grep -q "m5_exit instruction encountered"
+        stop_fifo
+    - name: Deploy docker image
+      run: |
+        set -evx
+        username=${DOCKER_BASE/\/*/}
+        echo "$DOCKER_PASSWORD" | docker login -u="$username" --password-stdin
+        docker push "$DOCKER_BASE:$TAG"
