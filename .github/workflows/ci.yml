@@ -36,8 +36,9 @@ jobs:
       github.repository == 'ArturKlauser/gem5-dev'
     env:
       # Export environment variables for all stages.
-      DOCKER_BASE: arturklauser/gem5-dev
+      DOCKER_USER: arturklauser
       DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      DOCKER_REPO: gem5-dev
     steps:
     - name: Checkout code
       uses: actions/checkout@v1
@@ -54,6 +55,7 @@ jobs:
           # Pushes tag - deploy tag name.
           echo "::set-env name=TAG::${GITHUB_REF/refs\/tags\//}"
         fi
+        echo "::set-env name=DOCKER_BASE::${DOCKER_USER}/${DOCKER_REPO}"
     - name: Build docker image
       run: |
         set -evx
@@ -109,6 +111,29 @@ jobs:
     - name: Deploy docker image
       run: |
         set -evx
-        username=${DOCKER_BASE/\/*/}
-        echo "$DOCKER_PASSWORD" | docker login -u="$username" --password-stdin
+        echo "$DOCKER_PASSWORD" \
+        | docker login -u="$DOCKER_USER" --password-stdin
         docker push "$DOCKER_BASE:$TAG"
+    - name: Install Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 13.x
+    - name: Update DockerHub description
+      run: |
+        set -evx
+        npm install docker-hub-api@0.8.0
+        node -e '
+          const fs = require("fs");
+          let readme = fs.readFileSync("README.md", "utf8");
+          let dockerHubAPI = require("docker-hub-api");
+          dockerHubAPI.login(
+            process.env.DOCKER_USER,
+            process.env.DOCKER_PASSWORD)
+          .then(function () {
+            dockerHubAPI.setRepositoryDescription(
+              process.env.DOCKER_USER,
+              process.env.DOCKER_REPO,
+              {short: "Development environment for gem5 ARM",
+               full: readme});
+          });
+        '
