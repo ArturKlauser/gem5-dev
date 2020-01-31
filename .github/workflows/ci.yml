@@ -3,31 +3,31 @@ name: GEM5-dev CI Tests
 on: [push, pull_request]
 
 jobs:
-  run-pre-commits:
-    name: Run pre-commit checks
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        fetch-depth: 1  # no history, just HEAD
-    - name: Set up Python
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.7
-    - name: set PY
-      run: echo "::set-env name=PY::$(python -VV | sha256sum | cut -d' ' -f1)"
-    - name: Cache pre-commit Repository Store
-      uses: actions/cache@v1
-      with:
-        path: ~/.cache/pre-commit  # default pre-commit cache location
-        key: pre-commit|${{env.PY}}|${{hashFiles('.pre-commit-config.yaml')}}
-    - name: Run pre-commit checks
-      uses: pre-commit/action@v1.0.0
+#  run-pre-commits:
+#    name: Run pre-commit checks
+#    runs-on: ubuntu-latest
+#    steps:
+#    - uses: actions/checkout@v1
+#      with:
+#        fetch-depth: 1  # no history, just HEAD
+#    - name: Set up Python
+#      uses: actions/setup-python@v1
+#      with:
+#        python-version: 3.7
+#    - name: set PY
+#      run: echo "::set-env name=PY::$(python -VV | sha256sum | cut -d' ' -f1)"
+#    - name: Cache pre-commit Repository Store
+#      uses: actions/cache@v1
+#      with:
+#        path: ~/.cache/pre-commit  # default pre-commit cache location
+#        key: pre-commit|${{env.PY}}|${{hashFiles('.pre-commit-config.yaml')}}
+#    - name: Run pre-commit checks
+#      uses: pre-commit/action@v1.0.0
 
   docker:
     name: Build, test, and deploy Docker images
     # Only deploy if previous stages pass.
-    needs: [run-pre-commits]
+#    needs: [run-pre-commits]
     runs-on: ubuntu-latest
     if: >
       github.event_name == 'push' &&
@@ -56,64 +56,64 @@ jobs:
           echo "::set-env name=TAG::${GITHUB_REF/refs\/tags\//}"
         fi
         echo "::set-env name=DOCKER_BASE::${DOCKER_USER}/${DOCKER_REPO}"
-    - name: Build docker image
-      run: |
-        set -evx
-        docker build -t "${DOCKER_BASE}:${TAG}" docker
-    - name: Test docker image
-      run: |
-        set -evx
-        export GEM5_WORKDIR="${PWD}/work"
-        mkdir -p "${GEM5_WORKDIR}"
-
-        function title() {
-          msg="$1"
-          line="${1//?/=}"
-          printf "\n${line}\n${msg}\n${line}\n"
-        }
-
-        # Run command in gem5 container, print all executed lines (-x), and exit
-        # on first error (-e).
-        function run_gem5() {
-          title "$*"
-          docker run --rm -v "${GEM5_WORKDIR}:/gem5" "${DOCKER_BASE}:${TAG}" \
-            -ex "$@"
-        }
-
-        function start_fifo() {
-          fifo='x.fifo'
-          rm -f "${fifo}"
-          mkfifo "${fifo}"
-          tail -f "${fifo}" &
-          tail_fifo_pid=$!
-        }
-
-        function stop_fifo() {
-          sleep 1
-          kill "${tail_fifo_pid}"
-          rm -f "${fifo}"
-        }
-
-        # Test syscall-emulation (SE) mode.
-        run_gem5 install-source
-        run_gem5 build
-        # Run exits with error 13; consider it OK if it prints what we expect.
-        start_fifo
-        run_gem5 run-se | tee "${fifo}" | grep -q "Hello world"
-        stop_fifo
-
-        # Test full-system (FS) mode.
-        run_gem5 install-system
-        start_fifo
-        run_gem5 run-fs | tee "${fifo}" \
-          | grep -q "m5_exit instruction encountered"
-        stop_fifo
-    - name: Deploy docker image
-      run: |
-        set -evx
-        echo "$DOCKER_PASSWORD" \
-        | docker login -u="$DOCKER_USER" --password-stdin
-        docker push "$DOCKER_BASE:$TAG"
+#    - name: Build docker image
+#      run: |
+#        set -evx
+#        docker build -t "${DOCKER_BASE}:${TAG}" docker
+#    - name: Test docker image
+#      run: |
+#        set -evx
+#        export GEM5_WORKDIR="${PWD}/work"
+#        mkdir -p "${GEM5_WORKDIR}"
+#
+#        function title() {
+#          msg="$1"
+#          line="${1//?/=}"
+#          printf "\n${line}\n${msg}\n${line}\n"
+#        }
+#
+#        # Run command in gem5 container, print all executed lines (-x), and exit
+#        # on first error (-e).
+#        function run_gem5() {
+#          title "$*"
+#          docker run --rm -v "${GEM5_WORKDIR}:/gem5" "${DOCKER_BASE}:${TAG}" \
+#            -ex "$@"
+#        }
+#
+#        function start_fifo() {
+#          fifo='x.fifo'
+#          rm -f "${fifo}"
+#          mkfifo "${fifo}"
+#          tail -f "${fifo}" &
+#          tail_fifo_pid=$!
+#        }
+#
+#        function stop_fifo() {
+#          sleep 1
+#          kill "${tail_fifo_pid}"
+#          rm -f "${fifo}"
+#        }
+#
+#        # Test syscall-emulation (SE) mode.
+#        run_gem5 install-source
+#        run_gem5 build
+#        # Run exits with error 13; consider it OK if it prints what we expect.
+#        start_fifo
+#        run_gem5 run-se | tee "${fifo}" | grep -q "Hello world"
+#        stop_fifo
+#
+#        # Test full-system (FS) mode.
+#        run_gem5 install-system
+#        start_fifo
+#        run_gem5 run-fs | tee "${fifo}" \
+#          | grep -q "m5_exit instruction encountered"
+#        stop_fifo
+#    - name: Deploy docker image
+#      run: |
+#        set -evx
+#        echo "$DOCKER_PASSWORD" \
+#        | docker login -u="$DOCKER_USER" --password-stdin
+#        docker push "$DOCKER_BASE:$TAG"
     - name: Install Node.js
       uses: actions/setup-node@v1
       with:
@@ -123,6 +123,10 @@ jobs:
         set -evx
         npm install docker-hub-api@0.8.0
         node -e '
+          function error(reason) {
+            console.log("Error: " + reason.message);
+            process.exit(1);
+          }
           const fs = require("fs");
           let readme = fs.readFileSync("README.md", "utf8");
           let dockerHubAPI = require("docker-hub-api");
@@ -134,6 +138,8 @@ jobs:
               process.env.DOCKER_USER,
               process.env.DOCKER_REPO,
               {short: "Development environment for gem5 ARM",
-               full: readme});
-          });
+               full: readme})
+            .catch(reason => error(reason));
+          })
+          .catch(reason => error(reason));
         '
