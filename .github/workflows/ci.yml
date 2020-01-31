@@ -123,6 +123,10 @@ jobs:
         set -evx
         npm install docker-hub-api@0.8.0
         node -e '
+          function error(reason) {
+            console.log("Error: " + reason.message);
+            process.exit(1);
+          }
           const fs = require("fs");
           let readme = fs.readFileSync("README.md", "utf8");
           let dockerHubAPI = require("docker-hub-api");
@@ -134,6 +138,8 @@ jobs:
               process.env.DOCKER_USER,
               process.env.DOCKER_REPO,
               {short: "Development environment for gem5 ARM",
-               full: readme});
-          });
+               full: readme})
+            .catch(reason => error(reason));
+          })
+          .catch(reason => error(reason));
         '
